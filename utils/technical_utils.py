@@ -142,64 +142,21 @@ class Tech:
         return sort[-1].x
 
     @classmethod
-    def add_falling_sand(cls, screen, screen_info, whole_sorted_grid):
-        end = False
-        falling_sand_list = []
-        iteration = 0
-        coordinates_for_sand = whole_sorted_grid
-        coordinates_for_sand = cls._delete_unreachable_cords(coordinates_for_sand, whole_sorted_grid)
-        while not end:
-            iteration += 1
-            # Pygame.clear_falling_sand(screen, screen_info, falling_sand_list)
-
-            if iteration % 2 == 0:
-                falling_sand_list.append(Sand(x=500, y=0, state=State.FALLING))
-
-            if iteration % 200 == 0:
-                coordinates_for_sand = cls._delete_unreachable_cords(coordinates_for_sand, whole_sorted_grid)
-
-            sand_index = 0
-            while sand_index < len(falling_sand_list):
-                sand_cord_rn = falling_sand_list[sand_index]
-                sand_cord_rn = cls.fall_sand(sand_cord_rn, coordinates_for_sand)
-                if sand_cord_rn.state is State.STILL:
-                    whole_sorted_grid.append(Obstacles(x=sand_cord_rn.x, y=sand_cord_rn.y, material=Material.SAND))
-                    coordinates_for_sand.append(Obstacles(x=sand_cord_rn.x, y=sand_cord_rn.y, material=Material.SAND))
-                    falling_sand_list.pop(sand_index)
-                    sand_index -= 1
-
-                if sand_cord_rn.y > cls.get_max_y(whole_sorted_grid):
-                    end = True
-                    break
-                sand_index += 1
-            # Pygame.draw_falling_sand(screen, screen_info, falling_sand_list)
-        return whole_sorted_grid
-
-    @classmethod
     def fall_sand(cls, sand_cord_rn: Sand, obstacles_list: List[Obstacles]):
         material_under = cls._get_coordinate_material(obstacles_list, x=sand_cord_rn.x, y=sand_cord_rn.y + 1)
-        # print(material_under)
-        # if material_under is Material.AIR:
-        if material_under.value == 0:
+        if material_under is Material.AIR:
             sand_cord_rn.y = sand_cord_rn.y + 1
-        # elif material_under is Material.ROCK or material_under is Material.SAND:
-        elif material_under.value == 1 or material_under.value == 2:
-            # print("obstacle!")
+        elif material_under is Material.ROCK or material_under is Material.SAND:
             material_under = cls._get_coordinate_material(obstacles_list, x=sand_cord_rn.x - 1, y=sand_cord_rn.y + 1)
-            # if material_under is Material.AIR:
-            if material_under.value == 0:
+            if material_under is Material.AIR:
                 sand_cord_rn.x = sand_cord_rn.x - 1
                 sand_cord_rn.y = sand_cord_rn.y + 1
-            # elif material_under is Material.ROCK or material_under is Material.SAND:
-            elif material_under.value == 1 or material_under.value == 2:
-                # print("obstacle!")
+            elif material_under is Material.ROCK or material_under is Material.SAND:
                 material_under = cls._get_coordinate_material(obstacles_list, x=sand_cord_rn.x + 1, y=sand_cord_rn.y + 1)
-                # if material_under is Material.AIR:
-                if material_under.value == 0:
+                if material_under is Material.AIR:
                     sand_cord_rn.x = sand_cord_rn.x + 1
                     sand_cord_rn.y = sand_cord_rn.y + 1
-                elif material_under.value == 1 or material_under.value == 2:
-                    # print("obstacle!")
+                elif material_under is Material.ROCK or material_under is Material.SAND:
                     sand_cord_rn.state = State.STILL
                     return sand_cord_rn
         return sand_cord_rn
