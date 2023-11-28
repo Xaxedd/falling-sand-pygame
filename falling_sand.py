@@ -37,10 +37,7 @@ coordinates_for_sand = Tech._delete_unreachable_cords(coordinates_for_sand, whol
 
 print("good cords", coordinates_for_sand)
 while not end:
-    Pygame.clear_falling_sand(screen, screen_info, falling_sand_list)
-
-    if Tech._get_coordinate_material(coordinates_for_sand, x=falling_sand_x_coordinte, y=0) is Material.SAND:
-        end = True
+    # Pygame.clear_falling_sand(screen, screen_info, falling_sand_list)
 
     if iteration % 2 == 0:
         falling_sand_list.append(Sand(x=falling_sand_x_coordinte, y=0, state=State.FALLING))
@@ -53,6 +50,8 @@ while not end:
         sand_cord_rn = falling_sand_list[sand_index]
         sand_cord_rn = Tech.fall_sand(sand_cord_rn, coordinates_for_sand)
         if sand_cord_rn.state is State.STILL:
+            if sand_cord_rn.y == 0 and sand_cord_rn.x == falling_sand_x_coordinte:
+                break
             whole_sorted_grid.append(Obstacles(x=sand_cord_rn.x, y=sand_cord_rn.y, material=Material.SAND))
             coordinates_for_sand.append(Obstacles(x=sand_cord_rn.x, y=sand_cord_rn.y, material=Material.SAND))
 
@@ -66,11 +65,12 @@ while not end:
             break
         sand_index += 1
     iteration += 1
-    Pygame.draw_falling_sand(screen, screen_info, falling_sand_list)
-    pygame.time.wait(20)
+    # Pygame.draw_falling_sand(screen, screen_info, falling_sand_list)
+    # pygame.time.wait(20)
 
 sand_amount = 0
 for x in whole_sorted_grid:
     if x.material is Material.SAND:
         sand_amount += 1
 print("sand amount:", sand_amount)
+input("end.")
