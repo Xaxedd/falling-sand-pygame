@@ -1,7 +1,6 @@
-import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import List
+from typing import List, Tuple
 
 
 class Material(Enum):
@@ -43,7 +42,19 @@ class Tech:
         return eval(x)
 
     @classmethod
-    def get_rock_points_list(cls, puzzle_input, max_height: int = 99999) -> List[Obstacles]:
+    def get_rock_points_list(cls, puzzle_input) -> List[Obstacles]:
+        rock_structure_points_list = cls.__get_rock_coordinates(puzzle_input)
+        rock_structure_points_list = cls._delete_duplicates(rock_structure_points_list)
+        rock_structure_points_list = cls._change_coordinate_x_values_to_normal(rock_structure_points_list)
+        return rock_structure_points_list
+
+    @staticmethod
+    def get_min_x_before_normalization(puzzle_input):
+        rock_structure_points_list = Tech.__get_rock_coordinates(puzzle_input)
+        return Tech.get_min_x(rock_structure_points_list)
+
+    @classmethod
+    def __get_rock_coordinates(cls, puzzle_input):
         rock_structure_points_list = []
         for line in puzzle_input:
             line = line.strip()
@@ -54,32 +65,8 @@ class Tech:
                 while index < len(starting_points):
                     start_cords = cls._get_cords(starting_points[index - 1])
                     ending_cords = cls._get_cords(starting_points[index])
-                    if start_cords.x == ending_cords.x:
-                        if start_cords.y >= ending_cords.y:
-                            for i in range(ending_cords.y, start_cords.y + 1):
-                                if i > max_height:
-                                    continue
-                                rock_structure_points_list.append(Obstacles(x=start_cords.x, y=i, material=Material.ROCK))
-                        else:
-                            for i in range(start_cords.y, ending_cords.y + 1):
-                                if i > max_height:
-                                    continue
-                                rock_structure_points_list.append(Obstacles(x=start_cords.x, y=i, material=Material.ROCK))
-
-                    if start_cords.y == ending_cords.y:
-                        if start_cords.x >= ending_cords.x:
-                            for i in range(ending_cords.x, start_cords.x + 1):
-                                if start_cords.y > max_height:
-                                    continue
-                                rock_structure_points_list.append(Obstacles(x=i, y=start_cords.y, material=Material.ROCK))
-                        else:
-                            for i in range(start_cords.x, ending_cords.x + 1):
-                                if start_cords.y > max_height:
-                                    continue
-                                rock_structure_points_list.append(Obstacles(x=i, y=start_cords.y, material=Material.ROCK))
+                    rock_structure_points_list.extend(cls.get_rock_row(start_coordinates=start_cords, end_coordinates=ending_cords))
                     index += 1
-        rock_structure_points_list = cls._delete_duplicates(rock_structure_points_list)
-        rock_structure_points_list = cls._change_coordinate_x_values_to_normal(rock_structure_points_list)
         return rock_structure_points_list
 
     @staticmethod
@@ -87,6 +74,35 @@ class Tech:
         splitted_cords = cords.split(",")
         return Cords(x=int(splitted_cords[0]),
                      y=int(splitted_cords[1]))
+
+    @classmethod
+    def get_rock_row(cls, start_coordinates, end_coordinates, max_height=99999) -> List[Obstacles]:
+        rock_row = []
+        if start_coordinates.x == end_coordinates.x:
+            range_start, range_end = cls.get_rock_row_start_and_end_range_points(start_coordinates.y, end_coordinates.y)
+            for i in range(range_start, range_end + 1):
+                if i > max_height:
+                    continue
+                rock_row.append(Obstacles(x=start_coordinates.x, y=i, material=Material.ROCK))
+
+        if start_coordinates.y == end_coordinates.y:
+            range_start, range_end = cls.get_rock_row_start_and_end_range_points(start_coordinates.x, end_coordinates.x)
+            for i in range(range_start, range_end + 1):
+                if start_coordinates.y > max_height:
+                    continue
+                rock_row.append(Obstacles(x=i, y=start_coordinates.y, material=Material.ROCK))
+
+        return rock_row
+
+    @classmethod
+    def get_rock_row_start_and_end_range_points(cls, start_coordinate: int, end_coordinate: int) -> Tuple[int, int]:
+        if start_coordinate >= end_coordinate:
+            range_start = end_coordinate
+            range_end = start_coordinate
+        else:
+            range_start = start_coordinate
+            range_end = end_coordinate
+        return range_start, range_end
 
     @classmethod
     def _delete_duplicates(cls, rock_list: List[Cords]):
